@@ -5,7 +5,7 @@
 include { FASTQC as FASTQC_RAW                                } from '../../modules/nf-core/fastqc/main'
 include { FASTQC as FASTQC_TRIMMED                            } from '../../modules/nf-core/fastqc/main'
 include { FASTP                                               } from '../../modules/nf-core/fastp/main'
-include { TRIMMOMATIC                                         } from '../../modules/nf-core/trimmomatic/main'
+include { TRIMMOMATIC_PE                                      } from '../../modules/local/trimmomatic_pe'
 include { ADAPTERREMOVAL as ADAPTERREMOVAL_PE                 } from '../../modules/nf-core/adapterremoval/main'
 include { ADAPTERREMOVAL as ADAPTERREMOVAL_SE                 } from '../../modules/nf-core/adapterremoval/main'
 include { BOWTIE2_REMOVAL_BUILD as BOWTIE2_HOST_REMOVAL_BUILD } from '../../modules/local/bowtie2_removal_build'
@@ -67,13 +67,19 @@ workflow SHORTREAD_PREPROCESSING {
         }
         else if (params.clip_tool == 'trimmomatic') {
 
-            TRIMMOMATIC(ch_raw_short_reads)
+            ch_adapterremoval_in = ch_raw_short_reads.branch {
+                single: it[0]['single_end']
+                paired: !it[0]['single_end']
+            }
 
-            ch_short_reads_prepped = Channel.empty()
-            ch_short_reads_prepped = TRIMMOMATIC.out.trimmed_reads
+            TRIMMOMATIC_PE(ch_adapterremoval_in.paired)
 
-            ch_versions      = ch_versions.mix(TRIMMOMATIC.out.versions.first())
-            ch_multiqc_files = ch_multiqc_files.mix(TRIMMOMATIC.out.summary)
+            ch_adapterremoval_in.single.map { meta, _reads ->
+                log.warn "Single end reads are not yet supported by Trimmomatic. Skipping adapter removal for ${meta.id}!"
+            }
+
+            ch_short_reads_prepped = TRIMMOMATIC_PE.out.trimmed_reads
+            ch_versions = ch_versions.mix(TRIMMOMATIC_PE.out.versions.first())
         }
     }
     else {

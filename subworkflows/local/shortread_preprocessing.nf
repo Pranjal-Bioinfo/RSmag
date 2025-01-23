@@ -6,6 +6,8 @@ include { FASTQC as FASTQC_RAW                                } from '../../modu
 include { FASTQC as FASTQC_TRIMMED                            } from '../../modules/nf-core/fastqc/main'
 include { FASTP                                               } from '../../modules/nf-core/fastp/main'
 include { TRIMMOMATIC_PE                                      } from '../../modules/local/trimmomatic_pe'
+include { COUNT_READ_BP as COUNT_READ_BP_RAW                  } from '../../modules/local/count_read_bp'
+include { COUNT_READ_BP as COUNT_READ_BP_TRIM                 } from '../../modules/local/count_read_bp'
 include { ADAPTERREMOVAL as ADAPTERREMOVAL_PE                 } from '../../modules/nf-core/adapterremoval/main'
 include { ADAPTERREMOVAL as ADAPTERREMOVAL_SE                 } from '../../modules/nf-core/adapterremoval/main'
 include { BOWTIE2_REMOVAL_BUILD as BOWTIE2_HOST_REMOVAL_BUILD } from '../../modules/local/bowtie2_removal_build'
@@ -80,6 +82,26 @@ workflow SHORTREAD_PREPROCESSING {
 
             ch_short_reads_prepped = TRIMMOMATIC_PE.out.trimmed_reads
             ch_versions = ch_versions.mix(TRIMMOMATIC_PE.out.versions.first())
+
+            COUNT_READ_BP_RAW (
+                ch_adapterremoval_in.paired
+                    .map { _meta, reads -> reads }
+                    .flatten()
+                    .collect()
+                    .map { reads -> [ [ id: 'raw_read_base_count' ], reads ] }
+            )
+
+            ch_versions = ch_versions.mix(COUNT_READ_BP_RAW.out.versions)
+
+            COUNT_READ_BP_TRIM (
+                ch_short_reads_prepped
+                    .map { _meta, reads -> reads }
+                    .flatten()
+                    .collect()
+                    .map { reads -> [ [ id: 'trim_read_base_count' ], reads ] }
+            )
+
+            ch_versions = ch_versions.mix(COUNT_READ_BP_TRIM.out.versions)
         }
     }
     else {

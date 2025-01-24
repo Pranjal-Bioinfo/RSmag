@@ -20,14 +20,15 @@ process BOWTIE2_ASSEMBLY_ALIGN {
     def input = params.single_end ? "-U \"${reads}\"" :  "-1 \"${reads[0]}\" -2 \"${reads[1]}\""
     """
     INDEX=`find -L ./ -name "*.rev.1.bt2l" -o -name "*.rev.1.bt2" | sed 's/.rev.1.bt2l//' | sed 's/.rev.1.bt2//'`
+    n_proc=\$(< /proc/cpuinfo grep '^processor' -c)
     bowtie2 \\
-        -p "${task.cpus}" \\
+        -p \$n_proc \\
         -x \$INDEX \\
         $args \\
         $input \\
         2> "${name}.bowtie2.log" | \
-        samtools view -@ "${task.cpus}" -bS | \
-        samtools sort -@ "${task.cpus}" -o "${name}.bam"
+        samtools view -@ \$n_proc -bS | \
+        samtools sort -@ \$n_proc -o "${name}.bam"
     samtools index "${name}.bam"
 
     if [ ${name} = "${assembly_meta.assembler}-${assembly_meta.id}-${assembly_meta.id}" ] ; then

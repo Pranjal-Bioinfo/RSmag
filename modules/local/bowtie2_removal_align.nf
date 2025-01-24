@@ -30,7 +30,9 @@ process BOWTIE2_REMOVAL_ALIGN {
         [ -z "\$INDEX" ] && INDEX=`find -L ./ -name "*.rev.1.bt2l" | sed "s/\\.rev.1.bt2l\$//"`
         [ -z "\$INDEX" ] && echo "Bowtie2 index files not found" 1>&2 && exit 1
 
-        bowtie2 -p ${task.cpus} \
+        n_proc=\$(< /proc/cpuinfo grep '^processor' -c)
+
+        bowtie2 -p \$n_proc \
                 -x \$INDEX \
                 -1 "${reads[0]}" -2 "${reads[1]}" \
                 $args \
@@ -51,7 +53,10 @@ process BOWTIE2_REMOVAL_ALIGN {
         """
     } else {
         """
-        bowtie2 -p ${task.cpus} \
+
+        n_proc=\$(< /proc/cpuinfo grep '^processor' -c)
+
+        bowtie2 -p \$n_proc \
                 -x ${index[0].getSimpleName()} \
                 -U ${reads} \
                 $args \

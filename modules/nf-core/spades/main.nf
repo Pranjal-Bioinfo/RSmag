@@ -35,9 +35,11 @@ process SPADES {
     def custom_hmms = hmm ? "--custom-hmms $hmm" : ""
     def reads = yml ? "--dataset $yml" : "$illumina_reads $pacbio_reads $nanopore_reads"
     """
+    n_proc=\$(< /proc/cpuinfo grep '^processor' -c)
+
     spades.py \\
         $args \\
-        --threads $task.cpus \\
+        --threads \$n_proc \\
         --memory $maxmem \\
         $custom_hmms \\
         $reads \\

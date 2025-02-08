@@ -1,6 +1,8 @@
 process GTDBTK_CLASSIFYWF {
     tag "${prefix}"
     label 'process_medium'
+    label 'migratable'
+    
     conda "${moduleDir}/environment.yml"
     container "${workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ? 'https://depot.galaxyproject.org/singularity/gtdbtk:2.4.0--pyhdfd78af_1' : 'biocontainers/gtdbtk:2.4.0--pyhdfd78af_1'}"
 

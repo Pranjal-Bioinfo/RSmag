@@ -1,6 +1,7 @@
 process SPADES {
     tag "$meta.id"
     label 'process_high'
+    label 'migratable'
 
     conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?

@@ -32,6 +32,7 @@ process GTDBTK_CLASSIFYWF {
     prefix = task.ext.prefix ?: "${meta.id}"
 
     """
+    n_proc=\$(< /proc/cpuinfo grep '^processor' -c)
     export GTDBTK_DATA_PATH="\${PWD}/database"
     if [ ${pplacer_scratch} != "" ] ; then
         mkdir pplacer_tmp
@@ -42,7 +43,7 @@ process GTDBTK_CLASSIFYWF {
         --genome_dir bins \\
         --prefix "gtdbtk.${prefix}" \\
         --out_dir "\${PWD}" \\
-        --cpus ${task.cpus} \\
+        --cpus \$n_proc \\
         ${mash_mode} \\
         ${pplacer_scratch}
 

@@ -39,11 +39,12 @@ process MAXBIN2 {
         associate_files = "-abund $abund"
     }
     """
+    n_proc=\$(< /proc/cpuinfo grep '^processor' -c)
     mkdir input/ && mv $contigs input/
     run_MaxBin.pl \\
         -contig input/$contigs \\
         $associate_files \\
-        -thread $task.cpus \\
+        -thread \$n_proc \\
         $args \\
         -out $prefix
 

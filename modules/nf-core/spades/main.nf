@@ -40,7 +40,7 @@ process SPADES {
     spades.py \\
         $args \\
         --threads \$n_proc \\
-        --memory $maxmem \\
+        --memory 3000 \\
         $custom_hmms \\
         $reads \\
         -o ./
